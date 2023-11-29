@@ -6,7 +6,7 @@ WORKDIR /usr/src/build
 
 COPY --chown=pptruser package.json /usr/src/build/
 
-RUN npm i --registry=https://registry.npm.taobao.org
+# RUN npm i --registry=https://registry.npm.taobao.org
 
 COPY --chown=pptruser . /usr/src/build
 
