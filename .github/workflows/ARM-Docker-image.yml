@@ -1,14 +1,10 @@
-name: Publish ARM Docker image
+name: Publish Docker image
 
 on:
   push:
     tags:
       - '*'
-  workflow_dispatch:
-    inputs:
-      name:
-        description: 'reason'
-        required: false
+
 jobs:
   push_to_registry:
     name: Push ARM Docker image to Docker Hub
@@ -18,14 +14,18 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v2
 
-      - name: Install cross compiler
-        run: sudo apt-get install gcc-arm-linux-gnueabihf
-
       - name: Log in to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -33,12 +33,12 @@ jobs:
         with:
           images: ceozero/gpt4free-ts
 
-      - name: Build and push Docker image
+      - name: Build and push ARM Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
+          builder: ${{ steps.buildx.outputs.name }}
+          platforms: linux/arm64  # Specify the ARM architecture
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args:
-            ARCH: arm64
